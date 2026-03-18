@@ -1,0 +1,16 @@
+import { GoogleGenAI } from "@google/genai";
+
+const ai = new GoogleGenAI({
+  apiKey: process.env.GEMINI_API_KEY,
+});
+
+async function main() {
+  const response = await ai.models.generateContent({
+    model: "gemini-2.5-flash-lite",
+    contents: "What the captital of india",
+  });
+
+  console.log(response.text);
+}
+
+export default main

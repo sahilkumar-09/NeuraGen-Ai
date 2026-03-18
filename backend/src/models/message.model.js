@@ -1,0 +1,21 @@
+import mongoose from "mongoose";
+
+const messageSchema = new mongoose.Schema({
+    chat: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "chat",
+        required: true
+    },
+    content: {
+        type: String,
+        trim: true,
+    },
+    role: {
+        type: String,
+        enum: ["user", "ai"],
+        required: true
+    }
+}, {timestamp: true})
+
+const messages = mongoose.model("message", messageSchema)
+export default messages
