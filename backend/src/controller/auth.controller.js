@@ -119,7 +119,7 @@ const verifyEmail = AsyncHandler(async (req, res) => {
             You can now login to your account.
           </p>
 
-          <a href="http://localhost:5173/login"
+          <a href="http://localhost:5173/auth/user/login"
             style="display:inline-block;margin-top:20px;padding:12px 25px;background:#4f46e5;color:white;text-decoration:none;border-radius:6px;font-size:16px;">
             Go to Login
           </a>
@@ -170,6 +170,7 @@ const userLoginController = AsyncHandler(async (req, res) => {
     new ApiResponse(
       200,
       {
+        token,
         user: {
           id: user._id,
           username: user.username,
