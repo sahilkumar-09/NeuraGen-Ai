@@ -15,7 +15,7 @@ const messageSchema = new mongoose.Schema({
         enum: ["user", "ai"],
         required: true
     }
-}, {timestamp: true})
+}, {timestamps: true})
 
 const messages = mongoose.model("message", messageSchema)
 export default messages

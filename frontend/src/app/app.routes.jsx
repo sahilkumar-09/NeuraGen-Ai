@@ -3,6 +3,8 @@ import Login from "../features/auth/pages/Login";
 import Register from "../features/auth/pages/Register";
 import Dashboard from "../features/chat/pages/Dashboard";
 import Protected from "../features/auth/components/Protected";
+import ForgetPassword from "../features/auth/pages/ForgetPassword";
+import ResetPassword from "../features/auth/pages/ResetPassword";
 
 export const router = createBrowserRouter([
   {
@@ -22,7 +24,15 @@ export const router = createBrowserRouter([
     element: <Register />,
   },
   {
+    path: "/auth/user/forget-password",
+    element: <ForgetPassword />,
+  },
+  {
+    path: "/auth/user/reset-password/:token",
+    element: <ResetPassword />,
+  },
+  {
     path: "/chat-dashboard",
-    element: <Navigate to="/" replace />
-  }
+    element: <Navigate to="/" replace />,
+  },
 ]);

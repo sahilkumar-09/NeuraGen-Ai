@@ -56,7 +56,7 @@ const Login = () => {
         {/* Forgot Password */}
         <div className="text-right mb-4">
           <Link
-            to="/auth/user/forgot-password"
+            to="/auth/user/forget-password"
             className="text-[#cfb386] text-sm hover:text-white transition"
           >
             Forgot Password?

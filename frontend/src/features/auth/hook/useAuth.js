@@ -22,7 +22,7 @@ export function useAuth() {
             await login({ email, password })
             return true
         } catch (error) {
-            dispatch(setError(error.response?.data?.message || "Login failed"))
+            dispatch(setError(error?.message || "Login failed"))
         } finally {
             dispatch(setLoading(false))
         }

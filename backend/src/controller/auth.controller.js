@@ -216,7 +216,7 @@ const forgetPasswordController = AsyncHandler(async (req, res) => {
 
   await user.save({ validateBeforeSave: false });
 
-  const resetURL = `http://localhost:3000/api/v1/auth/user/reset-password/${resetToken}`;
+  const resetURL = `http://localhost:5173/auth/user/reset-password/${resetToken}`
 
   await sendEmail({
     to: user.email,

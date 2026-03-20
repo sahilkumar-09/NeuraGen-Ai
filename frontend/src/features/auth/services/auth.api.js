@@ -5,7 +5,7 @@ const api = axios.create({
   withCredentials: true,
 });
 
-export const register = async ({ username, email, password, token }) => {
+export const register = async ({ username, email, password }) => {
   try {
     const response = await api.post(
       "/user/register",
@@ -13,12 +13,6 @@ export const register = async ({ username, email, password, token }) => {
         username,
         email,
         password,
-      },
-      {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
       },
     );
 
@@ -61,7 +55,7 @@ export const login = async ({ email, password, token }) => {
 export const forgetPassword = async ({ email, token }) => {
   try {
     const response = await api.post(
-      "/forget-password",
+      "/user/forget-password",
       {
         email,
       },
@@ -86,7 +80,7 @@ export const forgetPassword = async ({ email, token }) => {
 
 export const resetPassword = async ({ token, password }) => {
   try {
-    const response = await api.post(`/reset-password/${token}`, {
+    const response = await api.post(`/user/reset-password/${token}`, {
       password,
     });
     return response.data;
@@ -118,7 +112,7 @@ export const getMe = async () => {
 
 export const logout = async () => {
   try {
-    const response = await api.get("/logout");
+    const response = await api.get("/user/logout");
     return response.data;
   } catch (error) {
     if (error.response) {
