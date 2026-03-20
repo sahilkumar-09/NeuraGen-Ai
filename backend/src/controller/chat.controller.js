@@ -2,45 +2,149 @@ import { generateChatTitle, generateResponse } from "../service/ai.service.js";
 import { AsyncHandler } from "../service/AsyncHandler.service.js";
 import chats from "../models/chat.model.js";
 import messages from "../models/message.model.js";
+import { ApiError } from "../service/ApiError.service.js";
+import { ApiResponse } from "../service/ApiResponse.service.js";
 
 export const sendMessage = AsyncHandler(async (req, res) => {
   const { message, chat: chatId } = req.body;
+
+  if (!message) {
+    throw new ApiError(400, "Message is required");
+  }
 
   let chat = null;
   let title = null;
 
   if (!chatId) {
-    title = await generateChatTitle(message);
+    try {
+      title = await generateChatTitle(message);
+    } catch (error) {
+      console.log("Title error: ", error.message);
+      title = "New Chat";
+    }
+
     chat = await chats.create({
       user: req.user.id,
       title,
     });
   } else {
-    chat = await chats.findById(chatId);
-    if (!chat) return res.status(404).json({ error: "Chat not found" });
-    title = chat.title;
+    chat = await chats.findById({ chatId });
+
+    if (!chat) {
+      throw new ApiError(400, "Chat not found");
+    }
   }
 
-  const allMessages = await messages.find({ chat: chat._id });
+  const currentChatId = chatId || chat._id;
 
-  const userMessage = await messages.create({
-    chat: chat._id,
+  await messages.create({
+    chat: currentChatId,
     content: message,
     role: "user",
   });
 
-  const response = await generateResponse(message);
+  let allMessage = await messages.find({ chat: currentChatId });
 
-  const aiMessage = await messages.create({
-    chat: chat._id,
-    content: response,
+  let result = "";
+
+  try {
+    result = await generateResponse(allMessage);
+  } catch (error) {
+    console.log("Ai error: ", error.message);
+    result = "Ai is currently unavailable, Please try again later";
+    throw new ApiError(500, "Failed to get response from AI");
+  }
+
+  await messages.create({
+    chat: currentChatId,
+    content: result,
     role: "ai",
   });
 
-  res.status(201).json({
-    response,
-    title,
-    chatId: chat._id,
-    allMessages: [...allMessages, userMessage, aiMessage],
-  });
+  return res.status(200).json(
+    new ApiResponse(200, {
+      AIMessage: result,
+      title,
+      chat,
+      allMessage,
+    }),
+  );
 });
+
+export const getChats = AsyncHandler(async (req, res) => {
+  const user = req.user;
+
+  const chat = await chats.find({
+    user: user.id,
+  });
+
+  if (!chat) {
+    throw new ApiError(400, "Chat not found");
+  }
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, chat, "Chats fetched successfully"));
+});
+
+export const getMessages = AsyncHandler(async (req, res) => {
+  const { chatId } = req.params;
+
+  const chat = await chats.findOne({ _id: chatId, user: req.user.id });
+
+  if (!chat) {
+    throw new ApiError(404, "Chat not found or not accessible");
+  }
+
+  const message = await messages.find({ chat: chatId });
+
+    if (!message) {
+        throw new ApiError(404,"Message not found");
+    }
+
+    return res.status(200).json(
+        new ApiResponse(200, message, "Messages fetched successfully")
+    );
+});
+
+export const deleteChat = AsyncHandler(async (req, res) => {
+    const { chatId } = req.params;
+    
+    const chat = await chats.findOneAndDelete({_id: chatId})
+
+    if(!chat){
+        throw new ApiError(404, "Chat not found")
+    }
+
+    await messages.deleteMany({chat: chatId})
+
+    return res.status(200).json(
+        new ApiResponse(200, null, "Chat deleted successfully")
+    )
+})
+
+export const deleteMessage = AsyncHandler(async (req, res) => {
+    
+    const message = req.params.messageId;
+    
+    if(!message){
+        throw new ApiError(400, "Invalid message id")
+    }
+
+    const msg = await messages.findById(message).populate("chat")
+
+    if(!msg){
+        throw new ApiError(400, "Message not found")
+    }
+
+    if (msg.chat.user.toString() !== req.user.id) {
+        throw new ApiError(403, "You are not allowed to delete this message")
+    }
+
+    await msg.deleteOne()
+
+    return res.status(200).json(
+        new ApiResponse(200, null, "Message deleted successfully")
+    )
+
+})

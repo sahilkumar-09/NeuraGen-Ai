@@ -1,7 +1,7 @@
 import { ChatGroq } from "@langchain/groq";
 import { ChatMistralAI } from "@langchain/mistralai";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
-import { HumanMessage, SystemMessage } from "@langchain/core/messages";
+import { AIMessage, HumanMessage, SystemMessage } from "@langchain/core/messages";
 
 const groqModel = new ChatGroq({
   apiKey: process.env.GROQ_API_KEY,
@@ -21,26 +21,51 @@ const geminiModel = new ChatGoogleGenerativeAI({
   temperature: 0.7
 });
 
-export const generateResponse = async (message) => {
+export const generateResponse = async (allMessages) => {
   try {
-    const response = await groqModel.invoke([new HumanMessage(message)]);
+    const response = await groqModel.invoke(allMessages.map(msg => {
+      if (msg.role === "user") {
+        return new HumanMessage(msg.content)
+      } else if (msg.role === "ai") {
+        return new AIMessage(msg.content)
+      }
+    }))
+
     return response.content
   } catch (error) {
-    console.log("Griq generating response: ", error)
+    console.log("Griq generating response: ", error);
     try {
-      const fallback1 = await mistralModel.invoke([new HumanMessage(message)])
+      const fallback1 = await mistralModel.invoke(
+        allMessages.map(msg => {
+          if(msg.role === "user"){
+            return new HumanMessage(msg.content)
+          } else if (msg.role === "ai") {
+            return new AIMessage(mgs.content)
+          }
+        })
+      )
+
       return fallback1.content
     } catch (error) {
-      console.log("Mistral generating response: ", error)
+      console.log("Mistral generating response: ", error);
       try {
-        const fallback2 = await geminiModel.invoke([new HumanMessage(message)])
+        const fallback2 = await geminiModel.invoke(
+          allMessages.map(msg => {
+            if(msg.role === "user"){
+              return new HumanMessage(msg.content)
+            } else if (msg.role === "ai") {
+              return new AIMessage(msg.content)
+            }
+          })
+        )
+
         return fallback2.content
       } catch (error) {
-        console.log("Google generative ai generating response: ", error)
+        console.log("Google generative ai generating response: ", error);
       }
     }
   }
-}
+};
 
 export const generateChatTitle = async (message) => {
   try {
