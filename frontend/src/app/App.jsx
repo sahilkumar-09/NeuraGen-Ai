@@ -15,10 +15,10 @@ const App = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
+      <div className="flex items-center justify-center h-screen bg-neutral-900">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-12 h-12 border-4 border-[#ecd9b9] border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-gray-600 text-sm">Loading...</p>
+          <div className="w-12 h-12 border-4 border-neutral-200 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-neutral-400 text-sm">Loading...</p>
         </div>
       </div>
     );

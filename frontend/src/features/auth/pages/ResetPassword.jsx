@@ -1,46 +1,62 @@
-import React, { useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom';
-import { useAuth } from '../hook/useAuth';
+import React, { useState } from "react";
+import { useNavigate, useParams, Link } from "react-router-dom";
+import { useAuth } from "../hook/useAuth";
 
 const ResetPassword = () => {
+  const { token } = useParams();
+  const navigate = useNavigate();
 
-    const {token} = useParams()
-    const navigate = useNavigate()
+  const { handleResetPassword } = useAuth();
 
-    const { handleResetPassword } = useAuth();
+  const [password, setPassword] = useState("");
 
-    const [password, setPassword] = useState("")
+  const submitHandler = async (e) => {
+    e.preventDefault();
 
-    const submitHandler = async (e) => {
-        e.preventDefault()
+    const success = await handleResetPassword({ token, password });
 
-        await handleResetPassword({ token, password })
-        
-        navigate("/auth/user/login")
+    if (success) {
+      navigate("/auth/user/login");
     }
+  };
 
-return (
-  <div className="min-h-screen flex justify-center items-center bg-[#1c1d1d]">
-    <form
-      onSubmit={submitHandler}
-      className="bg-[#ebf3ff15] p-8 rounded-xl w-[400px]"
-    >
-      <h2 className="text-white text-xl mb-4">Reset Password</h2>
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-neutral-800">
+      <form
+        onSubmit={submitHandler}
+        className="bg-zinc-900 p-8 rounded-2xl w-full max-w-md"
+      >
+        <h2 className="text-2xl text-center text-neutral-200 mb-6 font-bold">
+          Reset Password
+        </h2>
 
-      <input
-        type="password"
-        placeholder="New Password"
-        className="w-full p-3 mb-4 bg-transparent border text-white"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
+        <input
+          type="password"
+          placeholder="Enter new password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="w-full p-3 mb-4 rounded-full bg-neutral-800 border border-neutral-500 text-neutral-200 focus:outline-none"
+        />
 
-      <button className="w-full bg-[#948979] py-2 rounded">
-        Reset Password
-      </button>
-    </form>
-  </div>
-);
-}
+        <button
+          type="submit"
+          className="w-full py-3 rounded-full bg-neutral-200 hover:bg-neutral-300 active:scale-95 font-semibold transition cursor-pointer"
+        >
+          Reset Password
+        </button>
 
-export default ResetPassword
+        <p className="text-center text-neutral-200 mt-4">
+          Back to{" "}
+          <Link
+            to="/auth/user/login"
+            className="text-neutral-500 hover:text-neutral-600 transition"
+          >
+            Sign In
+          </Link>
+        </p>
+      </form>
+    </div>
+  );
+};
+
+export default ResetPassword;

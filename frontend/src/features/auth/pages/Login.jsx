@@ -28,36 +28,37 @@ const Login = () => {
     return <Navigate to="/" replace/>;
   }
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#1c1d1d]">
+    <div className="min-h-screen flex items-center justify-center bg-neutral-800">
       <form
         onSubmit={submitHandler}
-        className="bg-[#ebf3ff15] p-8 rounded-2xl w-full max-w-md"
+        className="bg-zinc-900 p-8 rounded-2xl w-full max-w-md"
       >
-        <h2 className="text-2xl text-center text-[#ecd9b9] mb-6 font-bold">
+        <h2 className="text-2xl text-center text-neutral-200 leading-tight mb-6 font-bold">
           Welcome to sign in page
-        </h2>
+        </h2> 
 
+        {/* <label id="email" htmlFor="">Email</label> */}
         <input
           type="email"
-          placeholder="Email"
+          placeholder="Enter your email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full p-3 mb-4 rounded-lg bg-transparent border border-gray-500 text-[#FAF7F3] focus:outline-none"
+          className="w-full p-3 mb-4 rounded-full bg-neutral-800 border border-neutral-500 text-neutral-200 focus:outline-none"
         />
 
         <input
           type="password"
-          placeholder="Password"
+          placeholder="Enter your password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full p-3 mb-2 rounded-lg bg-transparent border border-gray-500 text-[#FAF7F3] focus:outline-none"
+          className="w-full p-3 mb-2 rounded-full bg-neutral-800 border border-neutral-500 text-neutral-200 focus:outline-none"
         />
 
         {/* Forgot Password */}
         <div className="text-right mb-4">
           <Link
             to="/auth/user/forget-password"
-            className="text-[#cfb386] text-sm hover:text-white transition"
+            className="text-neutral-200 hover:text-neutral-400 text-sm transition"
           >
             Forgot Password?
           </Link>
@@ -65,16 +66,16 @@ const Login = () => {
 
         <button
           type="submit"
-          className="w-full py-3 rounded-lg bg-[#948979] text-[#FAF7F3] font-semibold transition hover:bg-white hover:text-[#b69a6c] cursor-pointer"
+          className="w-full py-3 rounded-full bg-neutral-200 hover:bg-neutral-300 active:scale-95 font-semibold transition  cursor-pointer"
         >
           Sign In
         </button>
 
-        <p className="text-center text-[#FAF7F3] mt-4">
+        <p className="text-center text-neutral-200 mt-4">
           Don't have an account?{" "}
           <Link
             to="/auth/user/register"
-            className="text-[#cfb386] hover:text-[#b69a6c] transition"
+            className="text-neutral-500 hover:text-neutral-600 transition"
           >
             Sign Up
           </Link>

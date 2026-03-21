@@ -5,6 +5,7 @@ import Dashboard from "../features/chat/pages/Dashboard";
 import Protected from "../features/auth/components/Protected";
 import ForgetPassword from "../features/auth/pages/ForgetPassword";
 import ResetPassword from "../features/auth/pages/ResetPassword";
+import EmailChecked from "../features/auth/pages/EmailChecked";
 
 export const router = createBrowserRouter([
   {
@@ -14,6 +15,10 @@ export const router = createBrowserRouter([
         <Dashboard />
       </Protected>
     ),
+  },
+  {
+    path: "/auth/user/email-checked",
+    element: <EmailChecked/>
   },
   {
     path: "/auth/user/login",

@@ -5,6 +5,7 @@ import { sendEmail } from "../service/mail.service.js";
 import { ApiResponse } from "../service/ApiResponse.service.js";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
+import redisClient from "../service/Redis.service.js";
 
 const userRegisterController = AsyncHandler(async (req, res) => {
   const { username, email, password } = req.body;
@@ -119,9 +120,9 @@ const verifyEmail = AsyncHandler(async (req, res) => {
             You can now login to your account.
           </p>
 
-          <a href="http://localhost:5173/auth/user/login"
+          <a href="http://localhost:5173/auth/user/email-checked"
             style="display:inline-block;margin-top:20px;padding:12px 25px;background:#4f46e5;color:white;text-decoration:none;border-radius:6px;font-size:16px;">
-            Go to Login
+            Verified
           </a>
 
           <p style="margin-top:20px;font-size:13px;color:#999;">
@@ -216,7 +217,7 @@ const forgetPasswordController = AsyncHandler(async (req, res) => {
 
   await user.save({ validateBeforeSave: false });
 
-  const resetURL = `http://localhost:5173/auth/user/reset-password/${resetToken}`
+  const resetURL = `http://localhost:5173/auth/user/reset-password/${resetToken}`;
 
   await sendEmail({
     to: user.email,
@@ -277,6 +278,8 @@ const logoutController = AsyncHandler(async (req, res) => {
     throw new ApiError(400, "No token provided");
   }
 
+  await redisClient.set(token, "logout", "Ex", 60 * 60 * 24);
+
   res.clearCookie("token");
 
   return res
@@ -292,4 +295,4 @@ export {
   forgetPasswordController,
   resetPasswordController,
   logoutController,
-};
+}
