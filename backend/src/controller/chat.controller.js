@@ -19,7 +19,6 @@ export const sendMessage = AsyncHandler(async (req, res) => {
     try {
       title = await generateChatTitle(message);
     } catch (error) {
-      console.log("Title error: ", error.message);
       title = "New Chat";
     }
 
@@ -28,7 +27,7 @@ export const sendMessage = AsyncHandler(async (req, res) => {
       title,
     });
   } else {
-    chat = await chats.findById({ chatId });
+    chat = await chats.findById(chatId || chat._id);
 
     if (!chat) {
       throw new ApiError(400, "Chat not found");
@@ -55,7 +54,7 @@ export const sendMessage = AsyncHandler(async (req, res) => {
     throw new ApiError(500, "Failed to get response from AI");
   }
 
-  await messages.create({
+  const AIMessage = await messages.create({
     chat: currentChatId,
     content: result,
     role: "ai",
@@ -63,10 +62,9 @@ export const sendMessage = AsyncHandler(async (req, res) => {
 
   return res.status(200).json(
     new ApiResponse(200, {
-      AIMessage: result,
       title,
       chat,
-      allMessage,
+      AIMessage,
     }),
   );
 });
@@ -98,53 +96,27 @@ export const getMessages = AsyncHandler(async (req, res) => {
 
   const message = await messages.find({ chat: chatId });
 
-    if (!message) {
-        throw new ApiError(404,"Message not found");
-    }
+  if (!message) {
+    throw new ApiError(404, "Message not found");
+  }
 
-    return res.status(200).json(
-        new ApiResponse(200, message, "Messages fetched successfully")
-    );
+  return res
+    .status(200)
+    .json(new ApiResponse(200, message, "Messages fetched successfully"));
 });
 
 export const deleteChat = AsyncHandler(async (req, res) => {
-    const { chatId } = req.params;
-    
-    const chat = await chats.findOneAndDelete({_id: chatId})
+  const { chatId } = req.params;
 
-    if(!chat){
-        throw new ApiError(404, "Chat not found")
-    }
+  const chat = await chats.findOneAndDelete({ _id: chatId });
 
-    await messages.deleteMany({chat: chatId})
+  if (!chat) {
+    throw new ApiError(404, "Chat not found");
+  }
 
-    return res.status(200).json(
-        new ApiResponse(200, null, "Chat deleted successfully")
-    )
-})
+  await messages.deleteMany({ chat: chatId });
 
-export const deleteMessage = AsyncHandler(async (req, res) => {
-    
-    const message = req.params.messageId;
-    
-    if(!message){
-        throw new ApiError(400, "Invalid message id")
-    }
-
-    const msg = await messages.findById(message).populate("chat")
-
-    if(!msg){
-        throw new ApiError(400, "Message not found")
-    }
-
-    if (msg.chat.user.toString() !== req.user.id) {
-        throw new ApiError(403, "You are not allowed to delete this message")
-    }
-
-    await msg.deleteOne()
-
-    return res.status(200).json(
-        new ApiResponse(200, null, "Message deleted successfully")
-    )
-
-})
+  return res
+    .status(200)
+    .json(new ApiResponse(200, null, "Chat deleted successfully"));
+});

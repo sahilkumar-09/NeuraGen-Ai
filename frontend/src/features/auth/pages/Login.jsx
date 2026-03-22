@@ -15,7 +15,6 @@ const Login = () => {
 
   const submitHandler = async (e) => {
     e.preventDefault();
-    console.log({ email, password });
 
     const success = await handleLogin({ email, password });
 

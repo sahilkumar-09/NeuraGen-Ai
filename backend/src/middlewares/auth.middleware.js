@@ -4,8 +4,7 @@ import jwt from "jsonwebtoken";
 
 const authMiddleware = AsyncHandler(async (req, res, next) => {
   const authHeader = req.headers.authorization;
-  console.log("HEADERS:", req.headers);
-  console.log("COOKIES:", req.cookies);
+
   const token =
     req.cookies.token ||
     (authHeader && authHeader.startsWith("Bearer ")

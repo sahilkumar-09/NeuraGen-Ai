@@ -1,0 +1,16 @@
+chats = {
+    "docker and aws": {
+        messages: [
+           {
+                role: "user",
+                content: "What is docker?"
+           },
+           {
+                role: "ai",
+                content: "docker............."
+           }
+        ],
+        id: "docker and aws",
+        lastUpdated: "2029-31-3",
+}
+}
