@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useAuth } from "../../auth/hook/useAuth";
-import { initializeSocketConnection } from "../services/chat.socket";
 import { useChat } from "../hooks/useChat";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 const Dashboard = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -10,19 +11,6 @@ const Dashboard = () => {
 
   const { user } = useSelector((state) => state.auth);
   const { handleLogout } = useAuth();
-
-  const chatu = [
-    { id: 1, title: "Chat 1" },
-    { id: 2, title: "Chat 2" },
-    { id: 3, title: "Chat 3" },
-    { id: 4, title: "Chat 1" },
-  ];
-
-  const messages = [
-    { id: 1, role: "user", content: "Hello bro!" },
-    { id: 2, role: "ai", content: "Hi 👋 How can I help you?" },
-    { id: 3, role: "user", content: "Make UI better" },
-  ];
 
   const chat = useChat();
 
@@ -36,14 +24,18 @@ const Dashboard = () => {
       return;
     }
 
-      chat.handleSendMessage({ message: trimmedMessage, chatId: currentChatId });
-      setChatInput("")
+    chat.handleSendMessage({ message: trimmedMessage, chatId: currentChatId });
+    setChatInput("");
   };
 
   useEffect(() => {
     chat.initializeSocketConnection();
-    console.log(chats, currentChatId);
+    chat.handleGetChats();
   }, []);
+
+  const openChat = (chatId) => {
+    chat.handleOpenChat(chatId, chats);
+  };
 
   return (
     <main className="h-screen w-full bg-neutral-800 text-neutral-200 overflow-hidden">
@@ -74,10 +66,13 @@ const Dashboard = () => {
 
           {/* Chats List */}
           <div className="flex-1 overflow-y-auto p-3 space-y-2 scrollbar-thin scrollbar-thumb-neutral-700">
-            {chatu.map((chat) => (
+            {Object.values(chats).map((chat) => (
               <button
+                onClick={() => {
+                  openChat(chat.id);
+                }}
                 key={chat.id}
-                className="w-full rounded-lg border border-neutral-600 px-3 py-2 text-left text-sm hover:bg-neutral-700 transition"
+                className="w-full rounded-lg border cursor-pointer border-neutral-600 px-3 py-2 text-left text-sm hover:bg-neutral-700 transition"
               >
                 {chat.title}
               </button>
@@ -115,16 +110,50 @@ const Dashboard = () => {
 
           {/* Messages */}
           <div className="flex-1 overflow-y-auto px-3 py-3 space-y-3 scrollbar-thin scrollbar-thumb-neutral-700">
-            {chats[currentChatId]?.messages.map((msg) => (
+            {chats[currentChatId]?.messages.map((msg, idx) => (
               <div
-                key={msg.id}
+                key={idx}
                 className={`max-w-[75%] rounded-2xl px-4 py-3 text-sm ${
                   msg.role === "user"
-                    ? "ml-auto rounded-br-none bg-neutral-700"
-                    : "mr-auto bg-neutral-900"
+                    ? "ml-auto rounded-tr-none bg-neutral-700"
+                    : "mr-auto bg-neutral-900 rounded-bl-none"
                 }`}
               >
-                {msg.content}
+                {msg.role === "user" ? (
+                  msg.content
+                ) : (
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    components={{
+                      p: ({ children }) => (
+                        <p className="mb-2 last:mb-0">{children}</p>
+                      ),
+                      ul: ({ children }) => (
+                        <ul className="mb-2 list-disc pl-5">{children}</ul>
+                      ),
+                      ol: ({ children }) => (
+                        <ol className="mb-2 list-decimal pl-5">{children}</ol>
+                      ),
+
+                      code({ inline, children, ...props }) {
+                        return inline ? (
+                          <code
+                            className="rounded bg-white/10 px-1 py-0.5"
+                            {...props}
+                          >
+                            {children}
+                          </code>
+                        ) : (
+                          <pre className="mb-2 overflow-x-auto rounded-xl bg-black/30 p-3">
+                            <code {...props}>{children}</code>
+                          </pre>
+                        );
+                      },
+                    }}
+                  >
+                    {msg.content}
+                  </ReactMarkdown>
+                )}
               </div>
             ))}
           </div>
