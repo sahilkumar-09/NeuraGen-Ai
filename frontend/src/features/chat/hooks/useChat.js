@@ -1,18 +1,24 @@
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { initializeSocketConnection } from "../services/chat.socket";
-import { getChat, getMessages, sendMessage } from "../services/chatApi";
+import {
+  deleteChat,
+  getChat,
+  getMessages,
+  sendMessage,
+} from "../services/chatApi";
 import {
   addMessages,
   addNewMessage,
   createNewChat,
+  removeChat,
   setChats,
   setCurrentChatId,
-  setError,
   setIsLoading,
 } from "../chat.slice";
 
 export const useChat = () => {
   const dispatch = useDispatch();
+  const { currentChatId } = useSelector((state) => state.chat);
 
   const handleSendMessage = async ({ message, chatId }) => {
     dispatch(setIsLoading(true));
@@ -73,26 +79,39 @@ export const useChat = () => {
   };
 
   const handleOpenChat = async (chatId, chats) => {
-      if (chats[chatId]?.messages.length === 0) {
-          
-          const data = await getMessages(chatId);
-      
-          const messages = data.data;
-      
-          const formattedMessage = messages.map((msg) => ({
-            content: msg.content,
-            role: msg.role,
-          }));
-      
-          dispatch(
-            addMessages({
-              chatId,
-              messages: formattedMessage,
-            }),
-          );
+    if (chats[chatId]?.messages.length === 0) {
+      const data = await getMessages(chatId);
+
+      const messages = data.data;
+
+      const formattedMessage = messages.map((msg) => ({
+        content: msg.content,
+        role: msg.role,
+      }));
+
+      dispatch(
+        addMessages({
+          chatId,
+          messages: formattedMessage,
+        }),
+      );
     }
 
     dispatch(setCurrentChatId(chatId));
+  };
+
+  const handleDeleteChat = async (chatId) => {
+    dispatch(setIsLoading(true));
+
+    await deleteChat(chatId);
+
+    dispatch(removeChat(chatId));
+
+    if (chatId === currentChatId) {
+      dispatch(setCurrentChatId(null));
+    }
+
+    dispatch(setIsLoading(false));
   };
 
   return {
@@ -100,5 +119,6 @@ export const useChat = () => {
     handleSendMessage,
     handleGetChats,
     handleOpenChat,
+    handleDeleteChat,
   };
 };

@@ -66,16 +66,28 @@ const Dashboard = () => {
 
           {/* Chats List */}
           <div className="flex-1 overflow-y-auto p-3 space-y-2 scrollbar-thin scrollbar-thumb-neutral-700">
-            {Object.values(chats).map((chat) => (
-              <button
-                onClick={() => {
-                  openChat(chat.id);
-                }}
-                key={chat.id}
-                className="w-full rounded-lg border cursor-pointer border-neutral-600 px-3 py-2 text-left text-sm hover:bg-neutral-700 transition"
-              >
-                {chat.title}
-              </button>
+            {Object.values(chats || {}).map((chatItem) => (
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    openChat(chatItem.id);
+                  }}
+                  key={chatItem.id}
+                  className="w-full rounded-lg border cursor-pointer border-neutral-600 px-3 py-2 text-left text-sm hover:bg-neutral-700 transition"
+                >
+                  {chatItem.title}
+                </button>
+                <button
+                  onClick={() => {
+                    if (window.confirm("Delete this chat?")) {
+                      chat.handleDeleteChat(chatItem.id);
+                    }
+                  }}
+                  className="text-red-400 hover:text-red-300"
+                >
+                  ✕
+                </button>
+              </div>
             ))}
           </div>
 

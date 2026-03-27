@@ -27,69 +27,59 @@ const geminiModel = new ChatGoogleGenerativeAI({
 const searchInternetTool = tool(searchInternet, {
   name: "searchInternet",
   description:
-    "Search the internet in real-time to find accurate, up-to-date information, news, and answers for user queries.",
+    "Search the internet in real-time to find accurate, up-to-date information, news, and answers.",
   schema: z.object({
-    query: z.string().describe("The search query to look up on the internet. "),
+    query: z.string().describe("Search query"),
   }),
 });
 
 const agent = createAgent({
   model: groqModel,
   tools: [searchInternetTool],
-  systemMessage: `
-You are a helpful and  precise assistant for answering questions.
-If the question requires up-to-date information, use the "searchInternet" tool to get the latest information from the internet and then answer based on the search results.
-`,
-})
+});
 
-const formatMessages = (allMessages) => {
-  if (!allMessages || allMessages.length === 0) {
-    return [new HumanMessage("Hello")];
-  }
-
-  return allMessages
-    .map((msg) => {
-      if (!msg || !msg.content) return null;
-
-      if (msg.role === "user") {
-        return new HumanMessage(msg.content);
-      }
-
-      if (msg.role === "ai") {
-        return new AIMessage(msg.content);
-      }
-
-      if (msg.role === "system") {
-        return new SystemMessage(msg.content);
-      }
-
-      return null;
-    })
-    .filter(Boolean);
+const buildMessages = (allMessages = []) => {
+  return [
+    new SystemMessage(`
+You are a helpful AI assistant.
+And your name is NeuraGen AI
+Guidelines:
+- Be clear, concise, and friendly.
+- Prioritize accuracy.
+- If unsure, say you don't know.
+- Use conversation history for context.
+- If the user asks about real-time info, news, or current events, use the searchInternet tool.
+`),
+    ...allMessages
+      .map((msg) => {
+        if (!msg || !msg.content) return null;
+        if (msg.role === "user") return new HumanMessage(msg.content);
+        if (msg.role === "ai") return new AIMessage(msg.content);
+        return null;
+      })
+      .filter(Boolean),
+  ];
 };
 
 export const generateResponse = async (allMessages) => {
-  const formattedMessages = formatMessages(allMessages);
+  const messages = buildMessages(allMessages);
 
   try {
-    const response = await agent.invoke(
-      { messages: formattedMessages },
-      { recursionLimit: 5 },
-    );
-
-    return response?.messages?.at(-1)?.content;
-  } catch (error) {
-    console.log("Agent Error:", error);
-
+    const response = await agent.invoke({ messages });
+    return response?.messages?.at(-1)?.content || "No response generated";
+  } catch (err1) {
+    console.log("Groq Agent Error:", err1);
     try {
-      const fallback1 = await mistralModel.invoke(formattedMessages);
+      const fallback1 = await mistralModel.invoke(messages);
       return fallback1.content;
-    } catch (error) {
+    } catch (err2) {
+      console.log("Mistral Error:", err2);
       try {
-        const fallback2 = await geminiModel.invoke(formattedMessages);
+        const fallback2 = await geminiModel.invoke(messages);
         return fallback2.content;
-      } catch (error) {
-        return "All models failed";
+      } catch (err3) {
+        console.log("Gemini Error:", err3);
+        return "All models failed. Please try again later.";
       }
     }
   }
@@ -98,14 +88,20 @@ export const generateResponse = async (allMessages) => {
 export const generateChatTitle = async (message) => {
   try {
     const response = await groqModel.invoke([
-      new SystemMessage(`You are a helpful assistant that generates concise chat titles based on the user's first message. The title should be 5 words or less and capture the essence of the conversation.  
+      new SystemMessage(`
+You generate short chat titles.
 
-        User will provide you with the first message of a chat conversation, and you will generate a title that captures the essence of the conversation in 3-5 words. The title should be clear, relevant and engaging giving users a quick understanding of the chat's topic.`),
-      new HumanMessage(`Generate a title: ${message})}`),
+Rules:
+- 3 to 5 words only
+- Clear and engaging
+- Capture the main topic
+      `),
+      new HumanMessage(`Generate a title: ${message}`),
     ]);
 
-    return response.content;
+    return response.content.trim();
   } catch (error) {
-    console.log("Error generating chat title: ", error);
+    console.log("Error generating chat title:", error);
+    return "New Chat";
   }
 };
